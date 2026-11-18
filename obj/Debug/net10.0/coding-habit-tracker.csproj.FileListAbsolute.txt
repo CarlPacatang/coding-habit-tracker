@@ -1,0 +1,14 @@
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\bin\Debug\net10.0\coding-habit-tracker.exe
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\bin\Debug\net10.0\coding-habit-tracker.deps.json
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\bin\Debug\net10.0\coding-habit-tracker.runtimeconfig.json
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\bin\Debug\net10.0\coding-habit-tracker.dll
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\bin\Debug\net10.0\coding-habit-tracker.pdb
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\obj\Debug\net10.0\coding-habit-tracker.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\obj\Debug\net10.0\coding-habit-tracker.AssemblyInfoInputs.cache
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\obj\Debug\net10.0\coding-habit-tracker.AssemblyInfo.cs
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\obj\Debug\net10.0\coding-habit-tracker.csproj.CoreCompileInputs.cache
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\obj\Debug\net10.0\coding-habit-tracker.dll
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\obj\Debug\net10.0\refint\coding-habit-tracker.dll
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\obj\Debug\net10.0\coding-habit-tracker.pdb
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\obj\Debug\net10.0\coding-habit-tracker.genruntimeconfig.cache
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\obj\Debug\net10.0\ref\coding-habit-tracker.dll
