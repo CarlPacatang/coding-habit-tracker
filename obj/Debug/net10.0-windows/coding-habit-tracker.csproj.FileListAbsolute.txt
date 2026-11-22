@@ -13,3 +13,17 @@ C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\obj\Debug\net10.0-wi
 C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\obj\Debug\net10.0-windows\coding-habit-tracker.pdb
 C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\obj\Debug\net10.0-windows\coding-habit-tracker.genruntimeconfig.cache
 C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\obj\Debug\net10.0-windows\ref\coding-habit-tracker.dll
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\bin\Debug\net10.0-windows\BouncyCastle.Cryptography.dll
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\bin\Debug\net10.0-windows\Google.Protobuf.dll
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\bin\Debug\net10.0-windows\K4os.Compression.LZ4.dll
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\bin\Debug\net10.0-windows\K4os.Compression.LZ4.Streams.dll
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\bin\Debug\net10.0-windows\K4os.Hash.xxHash.dll
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\bin\Debug\net10.0-windows\MySql.Data.dll
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\bin\Debug\net10.0-windows\ZstdSharp.dll
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\bin\Debug\net10.0-windows\runtimes\win-x64\native\comerr64.dll
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\bin\Debug\net10.0-windows\runtimes\win-x64\native\gssapi64.dll
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\bin\Debug\net10.0-windows\runtimes\win-x64\native\k5sprt64.dll
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\bin\Debug\net10.0-windows\runtimes\win-x64\native\krb5_64.dll
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\bin\Debug\net10.0-windows\runtimes\win-x64\native\krbcc64.dll
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\obj\Debug\net10.0-windows\coding-habit-tracker.csproj.AssemblyReference.cache
+C:\Users\CARL FRANCIS\Documents\GitHub\coding-habit-tracker\obj\Debug\net10.0-windows\coding-h.0065DA1E.Up2Date

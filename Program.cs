@@ -1,38 +1,50 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Drawing;
-using System.IO;
 using System.Windows.Forms;
+using MySql.Data.MySqlClient;
 
-class Program
+record HabitItem(int Id, string HabitDate, string HabitName, string Status)
 {
-    [STAThread]
-    static void Main()
+    public override string ToString() => $"{HabitDate} - {HabitName} [{Status}]";
+}
+
+class Program {
+    const string ConnStr = "server=127.0.0.1;port=3306;database=coding_habit_db;uid=CarlFran;pwd=1234;";
+
+    static List<HabitItem> FetchAllHabits()
     {
-        var form = new Form { Text = "Habit Dashboard", Size = new Size(420, 260), BackColor = Color.White };
-        var box = new TextBox { Location = new Point(20, 20), Width = 250 };
-        var btn = new Button { Text = "Save", Location = new Point(280, 18) };
-        var dash = new Label { Location = new Point(20, 60), AutoSize = true }; // Single dashboard summary line
-        var list = new ListBox { Location = new Point(20, 95), Width = 360, Height = 110 };
+        var items = new List<HabitItem>();
+        using var conn = new MySqlConnection(ConnStr);
+        conn.Open();
 
-        void UpdateDashboard()
+        const string sql = "SELECT id, habit_date, habit_name, status FROM habits ORDER BY id DESC;";
+        using var cmd = new MySqlCommand(sql, conn);
+        using var reader = cmd.ExecuteReader();
+
+        while (reader.Read())
         {
-            list.Items.Clear();
-            if (File.Exists("habits.txt")) list.Items.AddRange(File.ReadAllLines("habits.txt"));
-            dash.Text = $"Dashboard — Total Saved Habits: {list.Items.Count}";
+            items.Add(new HabitItem(
+                reader.GetInt32("id"),
+                reader.GetString("habit_date"),
+                reader.GetString("habit_name"),
+                reader.GetString("status")
+            ));
         }
+        return items;
+    }
 
-        btn.Click += (s, e) =>
-        {
-            if (!string.IsNullOrWhiteSpace(box.Text))
-            {
-                File.AppendAllText("habits.txt", $"{DateTime.Now:yyyy-MM-dd} - {box.Text} [Completed]{Environment.NewLine}");
-                box.Clear();
-                UpdateDashboard();
-            }
-        };
+    static void InsertHabit(string habitDate, string habitName, string status)
+    {
+        using var conn = new MySqlConnection(ConnStr);
+        conn.Open();
 
-        UpdateDashboard();
-        form.Controls.AddRange(new Control[] { box, btn, dash, list });
-        Application.Run(form);
+        const string sql = "INSERT INTO habits (habit_date, habit_name, status) VALUES (@date, @name, @status);";
+        using var cmd = new MySqlCommand(sql, conn);
+        cmd.Parameters.AddWithValue("@date", habitDate);
+        cmd.Parameters.AddWithValue("@name", habitName);
+        cmd.Parameters.AddWithValue("@status", status);
+        cmd.ExecuteNonQuery();
     }
 }

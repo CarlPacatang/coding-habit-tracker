@@ -1,8 +1,16 @@
 {
   "version": 2,
-  "dgSpecHash": "eWf0pChbODY=",
+  "dgSpecHash": "xPadb2GEpxE=",
   "success": true,
   "projectFilePath": "C:\\Users\\CARL FRANCIS\\Documents\\GitHub\\coding-habit-tracker\\coding-habit-tracker.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\CARL FRANCIS\\.nuget\\packages\\bouncycastle.cryptography\\2.6.2\\bouncycastle.cryptography.2.6.2.nupkg.sha512",
+    "C:\\Users\\CARL FRANCIS\\.nuget\\packages\\google.protobuf\\3.35.0\\google.protobuf.3.35.0.nupkg.sha512",
+    "C:\\Users\\CARL FRANCIS\\.nuget\\packages\\k4os.compression.lz4\\1.3.8\\k4os.compression.lz4.1.3.8.nupkg.sha512",
+    "C:\\Users\\CARL FRANCIS\\.nuget\\packages\\k4os.compression.lz4.streams\\1.3.8\\k4os.compression.lz4.streams.1.3.8.nupkg.sha512",
+    "C:\\Users\\CARL FRANCIS\\.nuget\\packages\\k4os.hash.xxhash\\1.0.8\\k4os.hash.xxhash.1.0.8.nupkg.sha512",
+    "C:\\Users\\CARL FRANCIS\\.nuget\\packages\\mysql.data\\26.10.0\\mysql.data.26.10.0.nupkg.sha512",
+    "C:\\Users\\CARL FRANCIS\\.nuget\\packages\\zstdsharp.port\\0.8.8\\zstdsharp.port.0.8.8.nupkg.sha512"
+  ],
   "logs": []
 }
