@@ -34,7 +34,7 @@ class Program {
         }
         return items;
     }
-
+    //This method inserts the logs to SQL database 
     static void InsertHabit(string habitDate, string habitName, string status)
     {
         using var conn = new MySqlConnection(ConnStr);
@@ -47,7 +47,7 @@ class Program {
         cmd.Parameters.AddWithValue("@status", status);
         cmd.ExecuteNonQuery();
     }
-
+    // Updates the habit logs both in app dashboard and in the database
     static void UpdateHabit(int id, string habitName)
     {
         using var conn = new MySqlConnection(ConnStr);
@@ -59,7 +59,7 @@ class Program {
         cmd.Parameters.AddWithValue("@id", id);
         cmd.ExecuteNonQuery();
     }
-
+    
     static void DeleteHabit(int id)
     {
         using var conn = new MySqlConnection(ConnStr);
@@ -150,8 +150,70 @@ class Program {
                 box.Text = item.HabitName;
         };
 
-        RefreshDashboard();
+        // Updates the entry via text box in the dashboard along inside the SQL Database
+        btnUpdate.Click += (s, e) =>
+        {
+            if (list.SelectedItem is not HabitItem item)
+            {
+                MessageBox.Show("Select a habit from the list first.", "Update");
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(box.Text))
+            {
+                MessageBox.Show("Enter the updated habit name first.", "Update");
+                return;
+            }
+            try
+            {
+                UpdateHabit(item.Id, box.Text.Trim());
+                box.Clear();
+                RefreshDashboard();
+                MessageBox.Show("Habit updated in database.", "Updated");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Database error on Update:\n{ex.Message}", "Error");
+            }
+        };
+        //easily deletes the habit logs both in dashboard and in database
+        btnDelete.Click += (s, e) =>
+        {
+            if (list.SelectedItem is not HabitItem item)
+            {
+                MessageBox.Show("Select a habit from the list first.", "Delete");
+                return;
+            }
+            try
+            {
+                DeleteHabit(item.Id);
+                box.Clear();
+                RefreshDashboard();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Database error on Delete:\n{ex.Message}", "Error");
+            }
+        };
+
+        // Clears the text in the text box and deselects them
+        btnClear.Click += (s, e) =>
+        {
+            list.ClearSelected();
+            box.Clear();
+            box.Focus();
+        };
+
+        try
+        {
+            RefreshDashboard();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Could not connect to MySQL:\n{ex.Message}", "Connection Error");
+        }
+
         form.Controls.AddRange(new Control[] { title, dash, box, btnCreate, btnUpdate, btnDelete, btnClear, list });
         Application.Run(form);
     }
 }
+    
