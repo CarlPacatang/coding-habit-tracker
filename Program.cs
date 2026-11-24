@@ -71,45 +71,132 @@ class Program {
         cmd.ExecuteNonQuery();
     }
 
+    // UI: one small helper so all four buttons share the same flat, colored style
+    static void StyleButton(Button b, Color color)
+    {
+        b.FlatStyle = FlatStyle.Flat;
+        b.FlatAppearance.BorderSize = 0;
+        b.BackColor = color;
+        b.ForeColor = Color.White;
+        b.Font = new Font("Segoe UI Semibold", 10);
+        b.Height = 38;
+        b.Cursor = Cursors.Hand;
+        b.FlatAppearance.MouseOverBackColor = ControlPaint.Light(color, 0.2f);
+        b.FlatAppearance.MouseDownBackColor = ControlPaint.Dark(color, 0.1f);
+    }
+
     [STAThread]
     static void Main()
     {
+        // UI: color palette
+        var primary = Color.FromArgb(79, 70, 229);   // indigo
+        var green   = Color.FromArgb(22, 163, 74);
+        var amber   = Color.FromArgb(217, 119, 6);
+        var red     = Color.FromArgb(220, 38, 38);
+        var gray    = Color.FromArgb(107, 114, 128);
+        var pageBg  = Color.FromArgb(243, 244, 246);
+
         var form = new Form
         {
             Text = "Coding Habit Tracker (MySQL)",
-            Size = new Size(460, 340),
-            BackColor = Color.White,
+            Size = new Size(520, 560),
+            MinimumSize = new Size(520, 560),
+            BackColor = pageBg,
+            Font = new Font("Segoe UI", 10),
             StartPosition = FormStartPosition.CenterScreen
+        };
+
+        // UI: colored header bar that holds the title and the dashboard text
+        var header = new Panel
+        {
+            Dock = DockStyle.Top,
+            Height = 80,
+            BackColor = primary
         };
 
         var title = new Label
         {
             Text = "Coding Habit Tracker",
-            Font = new Font("Segoe UI", 12, FontStyle.Bold),
-            Location = new Point(20, 15),
+            Font = new Font("Segoe UI", 16, FontStyle.Bold),
+            ForeColor = Color.White,
+            Location = new Point(25, 12),
             AutoSize = true
         };
 
         var dash = new Label
         {
-            Location = new Point(20, 45),
-            ForeColor = Color.DimGray,
+            Location = new Point(27, 48),
+            ForeColor = Color.FromArgb(224, 231, 255),
+            Font = new Font("Segoe UI", 9.5f),
             AutoSize = true
+        };
+        header.Controls.AddRange(new Control[] { title, dash });
+
+        // UI: white "card" behind the input and buttons
+        var card = new Panel
+        {
+            Location = new Point(20, 95),
+            Size = new Size(465, 120),
+            BackColor = Color.White,
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
         };
 
         var box = new TextBox
         {
-            Location = new Point(20, 75),
-            Width = 400,
+            Location = new Point(15, 15),
+            Width = 435,
+            Font = new Font("Segoe UI", 11),
+            BorderStyle = BorderStyle.FixedSingle,
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
             PlaceholderText = "Enter coding habit (e.g., Java OOP, SQL JOINs, C# CRUD)..."
         };
 
-        var btnCreate = new Button { Text = "Save", Location = new Point(20, 108), Width = 92 };
-        var btnUpdate = new Button { Text = "Update", Location = new Point(122, 108), Width = 92 };
-        var btnDelete = new Button { Text = "Delete", Location = new Point(224, 108), Width = 92 };
-        var btnClear  = new Button { Text = "Clear", Location = new Point(326, 108), Width = 94 };
+        var btnCreate = new Button { Text = "Save",   Location = new Point(15, 62),  Width = 100 };
+        var btnUpdate = new Button { Text = "Update", Location = new Point(125, 62), Width = 100 };
+        var btnDelete = new Button { Text = "Delete", Location = new Point(235, 62), Width = 100 };
+        var btnClear  = new Button { Text = "Clear",  Location = new Point(345, 62), Width = 105 };
 
-        var list = new ListBox { Location = new Point(20, 148), Width = 400, Height = 135 };
+        StyleButton(btnCreate, green);
+        StyleButton(btnUpdate, amber);
+        StyleButton(btnDelete, red);
+        StyleButton(btnClear, gray);
+        card.Controls.AddRange(new Control[] { box, btnCreate, btnUpdate, btnDelete, btnClear });
+
+        // UI: list is drawn by hand so each row looks like a card with a colored status
+        var list = new ListBox
+        {
+            Location = new Point(20, 230),
+            Size = new Size(465, 275),
+            BorderStyle = BorderStyle.None,
+            BackColor = Color.White,
+            DrawMode = DrawMode.OwnerDrawFixed,
+            ItemHeight = 40,
+            Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+        };
+
+        list.DrawItem += (s, e) =>
+        {
+            if (e.Index < 0) return;
+            var item = (HabitItem)list.Items[e.Index];
+            bool selected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
+
+            using var bg = new SolidBrush(selected ? Color.FromArgb(224, 231, 255) : Color.White);
+            e.Graphics.FillRectangle(bg, e.Bounds);
+
+            // habit name (left), date (under it), status (right)
+            using var nameFont = new Font("Segoe UI Semibold", 10);
+            using var dateFont = new Font("Segoe UI", 8.5f);
+            e.Graphics.DrawString(item.HabitName, nameFont, Brushes.Black, e.Bounds.X + 12, e.Bounds.Y + 3);
+            e.Graphics.DrawString(item.HabitDate, dateFont, Brushes.Gray, e.Bounds.X + 12, e.Bounds.Y + 21);
+
+            var statusSize = e.Graphics.MeasureString(item.Status, dateFont);
+            using var statusBrush = new SolidBrush(item.Status == "Completed" ? green : amber);
+            e.Graphics.DrawString(item.Status, dateFont, statusBrush,
+                e.Bounds.Right - statusSize.Width - 12, e.Bounds.Y + 12);
+
+            // thin divider line between rows
+            e.Graphics.DrawLine(Pens.Gainsboro, e.Bounds.Left, e.Bounds.Bottom - 1, e.Bounds.Right, e.Bounds.Bottom - 1);
+        };
 
         void RefreshDashboard()
         {
@@ -212,8 +299,7 @@ class Program {
             MessageBox.Show($"Could not connect to MySQL:\n{ex.Message}", "Connection Error");
         }
 
-        form.Controls.AddRange(new Control[] { title, dash, box, btnCreate, btnUpdate, btnDelete, btnClear, list });
+        form.Controls.AddRange(new Control[] { header, card, list });
         Application.Run(form);
     }
 }
-    
