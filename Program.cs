@@ -1,77 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
-using MySql.Data.MySqlClient;
 
-record HabitItem(int Id, string HabitDate, string HabitName, string Status)
+class Program
 {
-    public override string ToString() => $"{HabitDate} - {HabitName} [{Status}]";
-}
-
-class Program {
     const string ConnStr = "server=127.0.0.1;port=3306;database=coding_habit_db;uid=CarlFran;pwd=1234;";
 
-    static List<HabitItem> FetchAllHabits()
-    {
-        var items = new List<HabitItem>();
-        using var conn = new MySqlConnection(ConnStr);
-        conn.Open();
-
-        const string sql = "SELECT id, habit_date, habit_name, status FROM habits ORDER BY id DESC;";
-        using var cmd = new MySqlCommand(sql, conn);
-        using var reader = cmd.ExecuteReader();
-
-        while (reader.Read())
-        {
-            items.Add(new HabitItem(
-                reader.GetInt32("id"),
-                reader.GetString("habit_date"),
-                reader.GetString("habit_name"),
-                reader.GetString("status")
-            ));
-        }
-        return items;
-    }
-    //This method inserts the logs to SQL database 
-    static void InsertHabit(string habitDate, string habitName, string status)
-    {
-        using var conn = new MySqlConnection(ConnStr);
-        conn.Open();
-
-        const string sql = "INSERT INTO habits (habit_date, habit_name, status) VALUES (@date, @name, @status);";
-        using var cmd = new MySqlCommand(sql, conn);
-        cmd.Parameters.AddWithValue("@date", habitDate);
-        cmd.Parameters.AddWithValue("@name", habitName);
-        cmd.Parameters.AddWithValue("@status", status);
-        cmd.ExecuteNonQuery();
-    }
-    // Updates the habit logs both in app dashboard and in the database
-    static void UpdateHabit(int id, string habitName)
-    {
-        using var conn = new MySqlConnection(ConnStr);
-        conn.Open();
-
-        const string sql = "UPDATE habits SET habit_name = @name WHERE id = @id;";
-        using var cmd = new MySqlCommand(sql, conn);
-        cmd.Parameters.AddWithValue("@name", habitName);
-        cmd.Parameters.AddWithValue("@id", id);
-        cmd.ExecuteNonQuery();
-    }
-    
-    static void DeleteHabit(int id)
-    {
-        using var conn = new MySqlConnection(ConnStr);
-        conn.Open();
-
-        const string sql = "DELETE FROM habits WHERE id = @id;";
-        using var cmd = new MySqlCommand(sql, conn);
-        cmd.Parameters.AddWithValue("@id", id);
-        cmd.ExecuteNonQuery();
-    }
-
-    // UI: one small helper so all four buttons share the same flat, colored style
+    // UI change so all butons and its design matches
     static void StyleButton(Button b, Color color)
     {
         b.FlatStyle = FlatStyle.Flat;
@@ -79,139 +14,211 @@ class Program {
         b.BackColor = color;
         b.ForeColor = Color.White;
         b.Font = new Font("Segoe UI Semibold", 10);
-        b.Height = 38;
+        b.Height = 40;
+        b.TextAlign = ContentAlignment.MiddleLeft;
+        b.Padding = new Padding(12, 0, 0, 0);
         b.Cursor = Cursors.Hand;
         b.FlatAppearance.MouseOverBackColor = ControlPaint.Light(color, 0.2f);
         b.FlatAppearance.MouseDownBackColor = ControlPaint.Dark(color, 0.1f);
     }
 
+    // UI small white bars i replaced the old single dashboard text
+    static Panel StatCard(string caption, Color accent, Point location, out Label value)
+    {
+        var card = new Panel { Location = location, Size = new Size(220, 70), BackColor = Color.White };
+        var strip = new Panel { Dock = DockStyle.Left, Width = 5, BackColor = accent };
+        var cap = new Label
+        {
+            Text = caption, ForeColor = Color.Gray, Font = new Font("Segoe UI", 8.5f),
+            Location = new Point(18, 8), AutoSize = true
+        };
+        value = new Label
+        {
+            Text = "0", Font = new Font("Segoe UI", 18, FontStyle.Bold),
+            ForeColor = Color.FromArgb(30, 41, 59), Location = new Point(16, 27), AutoSize = true
+        };
+        card.Controls.AddRange(new Control[] { strip, cap, value });
+        return card;
+    }
+
     [STAThread]
     static void Main()
     {
-        // UI: color palette
-        var primary = Color.FromArgb(79, 70, 229);   // indigo
-        var green   = Color.FromArgb(22, 163, 74);
-        var amber   = Color.FromArgb(217, 119, 6);
-        var red     = Color.FromArgb(220, 38, 38);
-        var gray    = Color.FromArgb(107, 114, 128);
-        var pageBg  = Color.FromArgb(243, 244, 246);
+        var repository = new HabitRepository(ConnStr);
+
+        // UI colors 
+        var sidebarBg = Color.FromArgb(30, 41, 59);   // dark slate
+        var accent    = Color.FromArgb(99, 102, 241); // indigo
+        var green     = Color.FromArgb(22, 163, 74);
+        var amber     = Color.FromArgb(217, 119, 6);
+        var red       = Color.FromArgb(220, 38, 38);
+        var gray      = Color.FromArgb(100, 116, 139);
+        var pageBg    = Color.FromArgb(241, 245, 249);
 
         var form = new Form
         {
             Text = "Coding Habit Tracker (MySQL)",
-            Size = new Size(520, 560),
-            MinimumSize = new Size(520, 560),
+            Size = new Size(1000, 640),
+            MinimumSize = new Size(900, 560),
             BackColor = pageBg,
             Font = new Font("Segoe UI", 10),
             StartPosition = FormStartPosition.CenterScreen
         };
 
-        // UI: colored header bar that holds the title and the dashboard text
-        var header = new Panel
-        {
-            Dock = DockStyle.Top,
-            Height = 80,
-            BackColor = primary
-        };
+        // LEFT SIDEBAR (title + input + buttons) 
+        var sidebar = new Panel { Dock = DockStyle.Left, Width = 260, BackColor = sidebarBg };
 
         var title = new Label
         {
-            Text = "Coding Habit Tracker",
+            Text = "Habit Records",
             Font = new Font("Segoe UI", 16, FontStyle.Bold),
             ForeColor = Color.White,
-            Location = new Point(25, 12),
+            Location = new Point(25, 25),
             AutoSize = true
         };
 
-        var dash = new Label
+        var subtitle = new Label
         {
-            Location = new Point(27, 48),
-            ForeColor = Color.FromArgb(224, 231, 255),
-            Font = new Font("Segoe UI", 9.5f),
+            Text = "Coding Habit Tracker",
+            Font = new Font("Segoe UI", 9),
+            ForeColor = Color.FromArgb(148, 163, 184),
+            Location = new Point(27, 58),
             AutoSize = true
         };
-        header.Controls.AddRange(new Control[] { title, dash });
 
-        // UI: white "card" behind the input and buttons
-        var card = new Panel
+        var inputLabel = new Label
         {
-            Location = new Point(20, 95),
-            Size = new Size(465, 120),
-            BackColor = Color.White,
-            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+            Text = "HABIT NAME",
+            Font = new Font("Segoe UI Semibold", 8.5f),
+            ForeColor = Color.FromArgb(148, 163, 184),
+            Location = new Point(27, 115),
+            AutoSize = true
         };
 
         var box = new TextBox
         {
-            Location = new Point(15, 15),
-            Width = 435,
+            Location = new Point(25, 140),
+            Width = 210,
             Font = new Font("Segoe UI", 11),
             BorderStyle = BorderStyle.FixedSingle,
-            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
-            PlaceholderText = "Enter coding habit (e.g., Java OOP, SQL JOINs, C# CRUD)..."
+            PlaceholderText = "e.g., Java OOP, SQL JOINs..."
         };
 
-        var btnCreate = new Button { Text = "Save",   Location = new Point(15, 62),  Width = 100 };
-        var btnUpdate = new Button { Text = "Update", Location = new Point(125, 62), Width = 100 };
-        var btnDelete = new Button { Text = "Delete", Location = new Point(235, 62), Width = 100 };
-        var btnClear  = new Button { Text = "Clear",  Location = new Point(345, 62), Width = 105 };
+        var btnCreate = new Button { Text = "Save",   Location = new Point(25, 195), Width = 210 };
+        var btnUpdate = new Button { Text = "Update", Location = new Point(25, 243), Width = 210 };
+        var btnDelete = new Button { Text = "Delete", Location = new Point(25, 291), Width = 210 };
+        var btnClear  = new Button { Text = "Clear",  Location = new Point(25, 339), Width = 210 };
 
         StyleButton(btnCreate, green);
         StyleButton(btnUpdate, amber);
         StyleButton(btnDelete, red);
         StyleButton(btnClear, gray);
-        card.Controls.AddRange(new Control[] { box, btnCreate, btnUpdate, btnDelete, btnClear });
 
-        // UI: list is drawn by hand so each row looks like a card with a colored status
-        var list = new ListBox
+        var footer = new Label
         {
-            Location = new Point(20, 230),
-            Size = new Size(465, 275),
+            Text = "MySQL  •  coding_habit_db",
+            Font = new Font("Segoe UI", 8.5f),
+            ForeColor = Color.FromArgb(100, 116, 139),
+            Location = new Point(27, 565),
+            AutoSize = true,
+            Anchor = AnchorStyles.Bottom | AnchorStyles.Left
+        };
+
+        sidebar.Controls.AddRange(new Control[] { title, subtitle, inputLabel, box, btnCreate, btnUpdate, btnDelete, btnClear, footer });
+
+        //  RIGHT SIDE (stat bars or textbox + records table) 
+        var content = new Panel { Dock = DockStyle.Fill, Padding = new Padding(25), BackColor = pageBg };
+
+        var topbar = new Panel { Dock = DockStyle.Top, Height = 150, BackColor = pageBg };
+
+        var pageTitle = new Label
+        {
+            Text = "All Habit Records",
+            Font = new Font("Segoe UI", 18, FontStyle.Bold),
+            ForeColor = Color.FromArgb(30, 41, 59),
+            Location = new Point(0, 0),
+            AutoSize = true
+        };
+
+        var pageHint = new Label
+        {
+            Text = "Click a row to edit it using the panel on the left.",
+            Font = new Font("Segoe UI", 9),
+            ForeColor = Color.Gray,
+            Location = new Point(2, 36),
+            AutoSize = true
+        };
+
+        var cardTotal = StatCard("TOTAL SAVED",  accent, new Point(0, 70),   out Label lblTotal);
+        var cardToday = StatCard("LOGGED TODAY", green,  new Point(235, 70), out Label lblToday);
+        topbar.Controls.AddRange(new Control[] { pageTitle, pageHint, cardTotal, cardToday });
+
+        // UI changed the old Listbox (DataGridView) so it looks more like a record system
+        var grid = new DataGridView
+        {
+            Dock = DockStyle.Fill,
+            ReadOnly = true,
+            AllowUserToAddRows = false,
+            AllowUserToResizeRows = false,
+            MultiSelect = false,
+            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+            RowHeadersVisible = false,
             BorderStyle = BorderStyle.None,
-            BackColor = Color.White,
-            DrawMode = DrawMode.OwnerDrawFixed,
-            ItemHeight = 40,
-            Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+            BackgroundColor = Color.White,
+            GridColor = Color.FromArgb(226, 232, 240),
+            CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal,
+            EnableHeadersVisualStyles = false,
+            ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing,
+            ColumnHeadersHeight = 42,
+            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
         };
+        grid.RowTemplate.Height = 38;
+        grid.ColumnHeadersDefaultCellStyle.BackColor = sidebarBg;
+        grid.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+        grid.ColumnHeadersDefaultCellStyle.SelectionBackColor = sidebarBg;
+        grid.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI Semibold", 10);
+        grid.ColumnHeadersDefaultCellStyle.Padding = new Padding(8, 0, 0, 0);
+        grid.DefaultCellStyle.Padding = new Padding(8, 0, 0, 0);
+        grid.DefaultCellStyle.SelectionBackColor = Color.FromArgb(224, 231, 255);
+        grid.DefaultCellStyle.SelectionForeColor = Color.Black;
+        grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(248, 250, 252);
 
-        list.DrawItem += (s, e) =>
+        grid.Columns.Add("id", "ID");
+        grid.Columns.Add("date", "Date");
+        grid.Columns.Add("name", "Habit");
+        grid.Columns.Add("status", "Status");
+        grid.Columns[0].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+        grid.Columns[0].Width = 60;
+        grid.Columns[2].FillWeight = 200;
+
+        // UI color the status text green means finished or done, orangeish is anything else
+        grid.CellFormatting += (s, e) =>
         {
-            if (e.Index < 0) return;
-            var item = (HabitItem)list.Items[e.Index];
-            bool selected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
-
-            using var bg = new SolidBrush(selected ? Color.FromArgb(224, 231, 255) : Color.White);
-            e.Graphics.FillRectangle(bg, e.Bounds);
-
-            // habit name (left), date (under it), status (right)
-            using var nameFont = new Font("Segoe UI Semibold", 10);
-            using var dateFont = new Font("Segoe UI", 8.5f);
-            e.Graphics.DrawString(item.HabitName, nameFont, Brushes.Black, e.Bounds.X + 12, e.Bounds.Y + 3);
-            e.Graphics.DrawString(item.HabitDate, dateFont, Brushes.Gray, e.Bounds.X + 12, e.Bounds.Y + 21);
-
-            var statusSize = e.Graphics.MeasureString(item.Status, dateFont);
-            using var statusBrush = new SolidBrush(item.Status == "Completed" ? green : amber);
-            e.Graphics.DrawString(item.Status, dateFont, statusBrush,
-                e.Bounds.Right - statusSize.Width - 12, e.Bounds.Y + 12);
-
-            // thin divider line between rows
-            e.Graphics.DrawLine(Pens.Gainsboro, e.Bounds.Left, e.Bounds.Bottom - 1, e.Bounds.Right, e.Bounds.Bottom - 1);
+            if (e.ColumnIndex == 3 && e.Value is string st)
+                e.CellStyle.ForeColor = st == "Completed" ? green : amber;
         };
+
+        // Fill control is added first, then the Top one WinForms docking order
+        content.Controls.Add(grid);
+        content.Controls.Add(topbar);
 
         void RefreshDashboard()
         {
-            list.Items.Clear();
-            var habits = FetchAllHabits();
+            grid.Rows.Clear();
+            var habits = repository.FetchAll();
             int todayCount = 0;
             string today = DateTime.Now.ToString("yyyy-MM-dd");
 
             foreach (var h in habits)
             {
-                list.Items.Add(h);
+                int rowIndex = grid.Rows.Add(h.Id, h.HabitDate, h.HabitName, h.Status);
+                grid.Rows[rowIndex].Tag = h;   // keeps the CodingHabit object inside the row
                 if (h.HabitDate == today) todayCount++;
             }
 
-            dash.Text = $"Dashboard — Total Saved: {habits.Count}   |   Logged Today: {todayCount}";
+            grid.CurrentCell = null;           // no row auto-selected after loading
+            lblTotal.Text = habits.Count.ToString();
+            lblToday.Text = todayCount.ToString();
         }
 
         // Creates the habit entry to save in the database
@@ -220,7 +227,8 @@ class Program {
             if (string.IsNullOrWhiteSpace(box.Text)) return;
             try
             {
-                InsertHabit(DateTime.Now.ToString("yyyy-MM-dd"), box.Text.Trim(), "Completed");
+                var habit = new CodingHabit(DateTime.Now.ToString("yyyy-MM-dd"), box.Text.Trim(), "Completed");
+                repository.Insert(habit);
                 box.Clear();
                 RefreshDashboard();
             }
@@ -230,19 +238,19 @@ class Program {
             }
         };
 
-        // READ selection into TextBox for editing
-        list.SelectedIndexChanged += (s, e) =>
+        // reads selection into TextBox for editing
+        grid.SelectionChanged += (s, e) =>
         {
-            if (list.SelectedItem is HabitItem item)
+            if (grid.CurrentRow?.Tag is CodingHabit item)
                 box.Text = item.HabitName;
         };
 
         // Updates the entry via text box in the dashboard along inside the SQL Database
         btnUpdate.Click += (s, e) =>
         {
-            if (list.SelectedItem is not HabitItem item)
+            if (grid.CurrentRow?.Tag is not CodingHabit item)
             {
-                MessageBox.Show("Select a habit from the list first.", "Update");
+                MessageBox.Show("Select a habit from the table first.", "Update");
                 return;
             }
             if (string.IsNullOrWhiteSpace(box.Text))
@@ -252,7 +260,7 @@ class Program {
             }
             try
             {
-                UpdateHabit(item.Id, box.Text.Trim());
+                repository.Update(item.Id, box.Text.Trim());
                 box.Clear();
                 RefreshDashboard();
                 MessageBox.Show("Habit updated in database.", "Updated");
@@ -262,17 +270,18 @@ class Program {
                 MessageBox.Show($"Database error on Update:\n{ex.Message}", "Error");
             }
         };
-        //easily deletes the habit logs both in dashboard and in database
+
+        // Easily deletes the habit logs both in dashboard and in database
         btnDelete.Click += (s, e) =>
         {
-            if (list.SelectedItem is not HabitItem item)
+            if (grid.CurrentRow?.Tag is not CodingHabit item)
             {
-                MessageBox.Show("Select a habit from the list first.", "Delete");
+                MessageBox.Show("Select a habit from the table first.", "Delete");
                 return;
             }
             try
             {
-                DeleteHabit(item.Id);
+                repository.Delete(item.Id);
                 box.Clear();
                 RefreshDashboard();
             }
@@ -285,7 +294,8 @@ class Program {
         // Clears the text in the text box and deselects them
         btnClear.Click += (s, e) =>
         {
-            list.ClearSelected();
+            grid.ClearSelection();
+            grid.CurrentCell = null;
             box.Clear();
             box.Focus();
         };
@@ -299,7 +309,9 @@ class Program {
             MessageBox.Show($"Could not connect to MySQL:\n{ex.Message}", "Connection Error");
         }
 
-        form.Controls.AddRange(new Control[] { header, card, list });
+        // Fill control first, then the Left one
+        form.Controls.Add(content);
+        form.Controls.Add(sidebar);
         Application.Run(form);
     }
 }
